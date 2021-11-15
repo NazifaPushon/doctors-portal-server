@@ -117,6 +117,17 @@ async function run() {
         const result = await appointmentCollection.findOne(query)
         res.json(result)
       })
+
+      app.put('appointment/:id' , async(req, res) => {
+        const id = req.params.id
+        const payment = req.body;
+        const filter = {_id:ObjectId(id)};
+        const updatedDoc  = {$set : {
+          payment:payment
+        }}
+        const result = await appointmentCollection.updateOne(filter,updatedDoc)
+        res.json(result)
+      })
       //const haiku = database.collection("haiku");
       // create a document to insert
       app.post('/create-payment-intent' , async(req,res) => {
