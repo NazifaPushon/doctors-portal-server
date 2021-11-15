@@ -3,6 +3,7 @@ const app = express()
 require('dotenv').config()
 const admin = require("firebase-admin");
 const cors = require('cors')
+const stripe = require('stripe')(process.env.STRIPE_SECRET)
 const ObjectId = require('mongodb').ObjectId
 const port = process.env.PORT || 5000 ;
 app.get('/', (req, res) => {
@@ -118,7 +119,18 @@ async function run() {
       })
       //const haiku = database.collection("haiku");
       // create a document to insert
-      
+      app.post('/create-payment-intent' , async(req,res) => {
+        const paymentInfo = req.body;
+        const amount = paymentInfo.price*100;
+        const paymentIntent  = await stripe.paymentIntents.create({
+          amount: amount,
+          currency: "usd",
+          payment_method_types: ['card'],
+        })
+        res.json({
+           clientSecret: paymentIntent.client_secret,
+        })
+      })
     } finally {
       
     }
