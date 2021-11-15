@@ -118,7 +118,7 @@ async function run() {
         res.json(result)
       })
 
-      app.put('appointment/:id' , async(req, res) => {
+      app.put('/appointment/:id' , async(req, res) => {
         const id = req.params.id
         const payment = req.body;
         const filter = {_id:ObjectId(id)};
