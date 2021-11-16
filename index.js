@@ -1,6 +1,7 @@
 const express = require('express')
 const app = express()
 require('dotenv').config()
+const fileUpload = require('express-fileupload')
 const admin = require("firebase-admin");
 const cors = require('cors')
 const stripe = require('stripe')(process.env.STRIPE_SECRET)
@@ -27,6 +28,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 //midlewate
 app.use(cors())
 app.use(express.json())
+app.use(fileUpload())
 
 async function varifyToken (req,res,next) {
   if(req.headers?.authorization?.startsWith('Bearer ')){
@@ -48,7 +50,7 @@ async function run() {
       const database = client.db("doctors-portal");
       const appointmentCollection = database.collection('appointments')
       const usersCollection = database.collection('users')
-
+      const doctorssCollection = database.collection('doctors')
       app.post('/appointments' , async(req, res) => {
           const appointment = req.body 
           const result = await appointmentCollection.insertOne(appointment)
@@ -141,6 +143,28 @@ async function run() {
         res.json({
            clientSecret: paymentIntent.client_secret,
         })
+      })
+
+      app.post('/doctors' , async(req,res) => {
+        const name = req.body.name;
+        const email = req.body.email;
+        const picture = req.files.image;
+        const pictureData = picture.data;
+        const encodedPic = pictureData.toString('base64');
+        const image = Buffer.from(encodedPic , 'base64')
+        const newDoctor = {
+          name , 
+          email ,
+          image
+        }
+        const result = await doctorssCollection.insertOne(newDoctor)
+        console.log('body' , req.body)
+        console.log('file' , req.files)
+        res.json(result)
+      })
+      app.get('/doctors' , async(req,res) => {
+        const result = await doctorssCollection.find({}).toArray()
+        res.json(result)
       })
     } finally {
       
